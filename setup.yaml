@@ -1,0 +1,18 @@
+title: outlier courses
+desc: All outlier courses
+details:
+    endpoint: https://api.outlier.org
+    headers:
+        - header: Authorization
+          key: bearer
+          value: token
+    path: /courses
+    method: GET
+response:
+    type: browser
+    file: courses
+    folder: ./response/
+    permission: 0644
+
+
+
