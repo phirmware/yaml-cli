@@ -92,16 +92,21 @@ func handleJsonResponse(data []byte, d types.Definition) error {
 }
 
 func handleBrowserResponse(data []byte, d types.Definition) error {
+	var port int
 	if (d.Response.Port == 0) {
-		return errors.New("Invalid port or No port defined")
+		port = 8080
+	} else {
+		port = d.Response.Port
 	}
+
+	strport := strconv.Itoa(port)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		fmt.Fprint(w, string(data))
 	})
-	openbrowser("http://localhost:" + strconv.Itoa(d.Response.Port))
-	http.ListenAndServe(":8080", nil)
+	openbrowser("http://localhost:" + strport)
+	http.ListenAndServe(":" + strport, nil)
 	return nil
 }
 
