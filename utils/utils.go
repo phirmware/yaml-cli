@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -9,6 +10,7 @@ import (
 	"os/exec"
 	"revision/cli-yaml/types"
 	"runtime"
+	"strconv"
 
 	"gopkg.in/yaml.v2"
 )
@@ -60,7 +62,9 @@ func MakeHttpCall(method string, url string, headers []types.Headers) (*http.Res
 		return nil, err
 	}
 
-	appendHeaders(req, headers)
+	if len(headers) > 0 {
+		appendHeaders(req, headers)
+	}
 	client := &http.Client{}
 
 	return client.Do(req)
@@ -78,7 +82,7 @@ func HandleResponse(data []byte, definition types.Definition) error {
 	case "browser":
 		return handleBrowserResponse(data, definition)
 	}
-	return nil
+	return errors.New("Unsupported response type")
 }
 
 func handleJsonResponse(data []byte, d types.Definition) error {
@@ -88,11 +92,15 @@ func handleJsonResponse(data []byte, d types.Definition) error {
 }
 
 func handleBrowserResponse(data []byte, d types.Definition) error {
+	if (d.Response.Port == 0) {
+		return errors.New("Invalid port or No port defined")
+	}
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		fmt.Fprint(w, string(data))
 	})
-	openbrowser("http://localhost:8080")
+	openbrowser("http://localhost:" + strconv.Itoa(d.Response.Port))
 	http.ListenAndServe(":8080", nil)
 	return nil
 }
@@ -106,6 +114,6 @@ func openbrowser(url string) error {
 	case "darwin":
 		return exec.Command("open", url).Start()
 	default:
-		return fmt.Errorf("unsupported platform")
+		return errors.New("unsupported platform")
 	}
 }

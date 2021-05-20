@@ -29,6 +29,8 @@ func main() {
 		panic(err)
 	}
 
-	utils.HandleResponse(body, definition)
+	if err := utils.HandleResponse(body, definition); err != nil {
+		panic(err)
+	}
 
 }

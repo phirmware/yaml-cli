@@ -14,6 +14,7 @@ type Definition struct {
 		File string
 		Folder string
 		Permission int
+		Port int
 	}
 }
 
