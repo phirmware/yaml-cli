@@ -11,7 +11,6 @@ import (
 	"revision/cli-yaml/types"
 	"runtime"
 	"strconv"
-	"time"
 
 	"gopkg.in/yaml.v2"
 )
@@ -94,7 +93,7 @@ func handleJsonResponse(data []byte, d types.Definition) error {
 
 func handleBrowserResponse(data []byte, d types.Definition) error {
 	var port int
-	if (d.Response.Port == 0) {
+	if d.Response.Port == 0 {
 		port = 8080
 	} else {
 		port = d.Response.Port
@@ -102,15 +101,20 @@ func handleBrowserResponse(data []byte, d types.Definition) error {
 
 	strport := strconv.Itoa(port)
 
+	serverChan := make(chan bool)
+	go runServerAndBrowser(strport, data, serverChan)
+	<-serverChan
+	return nil
+}
+
+func runServerAndBrowser(strport string, data []byte, serverChan chan bool) {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		fmt.Fprint(w, string(data))
+		serverChan <- true
 	})
 	openbrowser("http://localhost:" + strport)
-	// use the termination of the main thread to stop go routine execution
-	go http.ListenAndServe(":" + strport, nil)
-	time.Sleep(2 * time.Second)
-	return nil
+	http.ListenAndServe(":"+strport, nil)
 }
 
 func openbrowser(url string) error {
