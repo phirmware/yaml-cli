@@ -11,6 +11,7 @@ import (
 	"revision/cli-yaml/types"
 	"runtime"
 	"strconv"
+	"time"
 
 	"gopkg.in/yaml.v2"
 )
@@ -106,7 +107,9 @@ func handleBrowserResponse(data []byte, d types.Definition) error {
 		fmt.Fprint(w, string(data))
 	})
 	openbrowser("http://localhost:" + strport)
-	http.ListenAndServe(":" + strport, nil)
+	// use the termination of the main thread to stop go routine execution
+	go http.ListenAndServe(":" + strport, nil)
+	time.Sleep(2 * time.Second)
 	return nil
 }
 
